@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Team-Generator
+{% endblock %}
+
+{% block main %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const cards = document.getElementsByName("card_header");
+        let i = 1;
+        for (const card of cards) {
+            card.innerHTML = "Team " + i;
+            i++;
+        }
+    });
+</script>
+<div class="container">
+    <div class="row">
+        {% for team in teams %}
+        <div class="col-sm-4 col-lg-3 col-xxl-2">
+            <div class="card my-3">
+                <div class="card-header" name="card_header"></div>
+                <ul class="list-group list-group-flush">
+                    {% for member in team %}
+                    <li class="list-group-item">{{ member  }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="row py-5">
+        <div class="col-3">
+        <button class="btn btn-primary float-start" onclick="window.location.href='/teams'">Back</button>
+    </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Idea Finder
+{% endblock %}
+
+{% block main %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        //  Add an eventlistener to the add-button to intercept a click and execute the add_participant function
+        document.getElementById("add_idea").addEventListener("click", (e) => {
+            e.preventDefault();
+            add_idea();
+        });
+
+        // Activate the tooltips
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    });
+
+    // Delete an idea when the remove button is clicked
+    async function del_idea(id) {
+        const data = {
+            id: id,
+            function: "delete"
+        };
+        const response = await fetch("/ideas", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        window.location.href = "/ideas";
+    }
+
+    // Add a new idea to the database
+    async function add_idea() {
+        const idea = document.getElementById("new_idea").value;
+        const data = {
+            function: "add",
+            text: idea
+        };
+    const response = await fetch("/ideas", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+    window.location.href = "/ideas";
+    }
+
+    // Delete all ideas from the database
+    async function reset_ideas() {
+        const data = {
+            function: "reset",
+        };
+        const response = await fetch("/ideas", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+        window.location.href = "/ideas";
+    }
+
+    // Show or hide the ideas
+    function toggle_ideas() {
+        const rows = document.getElementsByName("ideas_row");
+        let change
+        for (const row of rows) {
+            if (row.hidden == true) {
+                row.hidden = false;
+            }
+            else {
+                row.hidden = true;
+            }
+
+        }
+    }
+</script>
+<div class="container">
+    <table class="table" id="table">
+        <thead>
+            <tr>
+                <th class="text-start">Ideas</th>
+                <th><button class="btn btn-outline-secondary float-end btn-1" data-bs-toggle="button"
+                        onclick="toggle_ideas()">Show</button></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for idea in ideas %}
+            <tr name="ideas_row" hidden>
+                <td id="{{ idea['id'] }}" class="text-start align-middle" data-bs-toggle="tooltip"
+                    data-bs-title="{{ idea['creator'] }}">{{ idea["text"] }}</td>
+                <td><button class="btn btn-outline-secondary float-end btn-1"
+                        onclick="del_idea({{ idea['id'] }})">Remove</button>
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <form>
+                    <td><input autocomplete="off" autofocus class="form-control w-auto float-start" id="new_idea"></td>
+                    <td><button class="btn btn-outline-primary float-end btn-1" id="add_idea">Add</button></td>
+                </form>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td id="ideas-count" class="text-start fw-bold"></td>
+                <td><button class="btn btn-outline-danger float-end btn-1" onclick="reset_ideas()">Reset</button>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="d-grid gap-2 d-sm-block d-sm-flex justify-content-sm-start">
+                <button class="btn btn-primary" onclick="window.location.href='/vote'">Vote On Ideas</button>
+                <button class="btn btn-success" onclick="window.location.href='/voting_results'">Show Results</button>
+    </div>
+</div>
+
+{% endblock %}

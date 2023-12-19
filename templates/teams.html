@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+
+{% block title %}
+Team-Generator
+{% endblock %}
+
+{% block main %}
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        // Update the sum of participants after loading page
+        update_sum();
+
+        //  Add an eventlistener to the add-button to intercept a click and execute the add_participant function
+        document.getElementById("add_participant").addEventListener("click", (e) => {
+            e.preventDefault();
+            add_participant();
+        });
+
+    });
+
+    // Remove the row of the clicked remove button
+    function del_row(btn) {
+        row = btn.parentNode.parentNode;
+        row.parentNode.removeChild(row);
+    }
+
+    // Update the participants stored in session
+    function update_participants(new_participant) {
+        const user_list = document.getElementsByName("participant");
+        let users = [];
+        for (let i = 0; i < user_list.length; i++) {
+            users.push(user_list[i].innerHTML);
+        }
+        if (arguments.length == 1) {
+            users.push(new_participant);
+        }
+        const data = {
+            participants: users,
+        };
+        const response = fetch("/teams", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json"
+            },
+        });
+        update_sum()
+        return response
+    }
+
+
+    // Update the sum of players in the last row of the table
+    function update_sum() {
+        let number_of_participants = document.getElementById("table").rows.length - 3;
+        document.getElementById("participants-count").innerHTML = "TOTAL: " + number_of_participants;
+    }
+
+    // Add a new participant to the list, wait for the fetch call to resolve and then reload the page
+    async function add_participant() {
+        const new_participant = document.getElementById("new_participant").value;
+        if (new_participant != "") {
+            const response = await update_participants(new_participant);
+            window.location.href = "/teams";
+        }
+    }
+
+    // Reset the participants to users
+    async function reset_participants() {
+        const data = {
+            participants: "",
+        };
+        const response = await fetch("/teams", {
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json"
+            },
+        });
+        window.location.href = "/teams";
+    }
+</script>
+<div class="container">
+    <table class="table" id="table">
+        <thead>
+            <tr>
+                <th class="text-start">Participants</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td name="participant" class="text-start align-middle">{{ user }}</td>
+                <td><button class="btn btn-outline-secondary float-end btn-1"
+                        onclick="del_row(this); update_participants()">Remove</button></td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <form>
+                    <td><input autocomplete="off" autofocus class="form-control w-auto float-start"
+                            id="new_participant"></td>
+                    <td><button class="btn btn-outline-primary float-end btn-1" id="add_participant">Add</button></td>
+                </form>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td id="participants-count" class="text-start fw-bold"></td>
+                <td><button class="btn btn-outline-danger float-end btn-1" onclick="reset_participants()">Reset</button>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    <form action="/teams" method="post">
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
+            <input autocomplete="off" class="form-control w-auto" min="1" name="number_of_teams" id="number_of_teams"
+                placeholder="Number of Teams" type="number">
+            <button class="btn btn-primary" type="submit">Generate Teams</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
